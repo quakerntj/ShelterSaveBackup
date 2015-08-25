@@ -19,7 +19,7 @@
         android:layout_alignParentLeft="true"
         android:layout_below="@id/textview1"
         android:onClick="onBackupClick"
-        android:tag="1"
+        android:tag="Vault1.sav"
         android:text="Save 1" />
 
     <Button
@@ -29,7 +29,7 @@
 	    android:layout_alignParentLeft="true"
         android:layout_below="@id/btnSave1"
 	    android:onClick="onBackupClick"
-        android:tag="2"
+        android:tag="Vault2.sav"
 	    android:text="Save 2" />
 
     <Button
@@ -39,7 +39,7 @@
 	    android:layout_alignParentLeft="true"
         android:layout_below="@id/btnSave2"
 	    android:onClick="onBackupClick"
-        android:tag="3"
+        android:tag="Vault3.sav"
 	    android:text="Save 3" />
 
    	<TextView

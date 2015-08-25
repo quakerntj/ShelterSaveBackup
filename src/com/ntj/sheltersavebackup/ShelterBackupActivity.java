@@ -62,7 +62,7 @@ public class ShelterBackupActivity extends Activity {
 
 		public File getFile() {
 			return new File(Environment.getExternalStorageDirectory(),
-	        		String.format("%s/%03d", BACKUP_PATH, mIndex));
+	        		String.format("%s/%03d/Vault.sav", BACKUP_PATH, mIndex));
 		}
 	}
 
@@ -136,7 +136,7 @@ public class ShelterBackupActivity extends Activity {
 				} catch (NumberFormatException e) {
 					continue;
 				}
-				long date = getDate(f);
+				long date = getFileDate(new File(f, "Vault.sav"));
 				if (date == 0)
 					continue;
 				newBB(index, date);
@@ -145,10 +145,39 @@ public class ShelterBackupActivity extends Activity {
 	}
 	
 	private void copyDirectory(File source, File destination) {
-		Log.d(TAG, "Copy file from " + source + " to " + destination);
+		Log.d(TAG, "Copy directory from " + source + " to " + destination);
 
 		try {
         	FileUtils.copyDirectory(source, destination, true);
+        } catch (IOException e) {
+        	Log.d(TAG, "fail on copy");
+            e.printStackTrace();
+        }
+	}
+
+	private void deleteTree(File f) {
+		if (!f.exists())
+			return;
+		if (f.isDirectory()) {
+			File [] list = f.listFiles();
+			for (File c : list) {
+				deleteTree(c);
+			}
+		}
+		f.delete();
+	}
+
+	private void copyFile(File source, File destination) {
+		Log.d(TAG, "Copy file from " + source + " to " + destination);
+		if (destination.isDirectory())
+			return;
+
+		File dir = destination.getParentFile();
+		if (!dir.exists())
+			dir.mkdirs();
+		try {
+        	FileUtils.copyFile(source, destination, true);
+        	Log.d(TAG, "copied");
         } catch (IOException e) {
         	Log.d(TAG, "fail on copy");
             e.printStackTrace();
@@ -167,18 +196,21 @@ public class ShelterBackupActivity extends Activity {
 		btn = (Button)findViewById(R.id.btnSave1);
 		if (dates[0] != 0) {
 			btn.setText("Save 1 " + getDate(dates[0]));
+			btn.setEnabled(true);
 		} else {
 			btn.setEnabled(false);
 		}
 		btn = (Button)findViewById(R.id.btnSave2);
 		if (dates[1] != 0) {
 			btn.setText("Save 2 " + getDate(dates[1]));
+			btn.setEnabled(true);
 		} else {
 			btn.setEnabled(false);
 		}
 		btn = (Button)findViewById(R.id.btnSave3);
 		if (dates[2] != 0) {
 			btn.setText("Save 3 " + getDate(dates[2]));
+			btn.setEnabled(true);
 		} else {
 			btn.setEnabled(false);
 		}
@@ -195,13 +227,13 @@ public class ShelterBackupActivity extends Activity {
 		super.onPause();
 	}
 
-	private void doRestore(View v) {
+	private void doRestore(View v, int which) {
 		Log.d(TAG, "doRestore");
 		// Always do backup.
 		File backup = new File(mSavePath.getAbsolutePath() + ".backup");
 		if (backup.exists())
 			deleteTree(backup);
-		mSavePath.renameTo(backup);
+		copyDirectory(mSavePath, backup);
 
 		RelativeLayout rl = (RelativeLayout) v.getParent();
 		if (rl == null || mButtons == null)
@@ -217,64 +249,47 @@ public class ShelterBackupActivity extends Activity {
 			return;
 		int index = bb.getIndex();
 		Log.i(TAG, "BB index:" + index);
-		
-		copyDirectory(bb.getFile(), mSavePath);
+
+		Log.d(TAG, "which " + which);
+		File save = new File(mSavePath, "files/Vault" + (which + 1) + ".sav");
+		copyFile(bb.getFile(), save);
 		updateSaveButtons();
 	}
 	
 	public void onRestoreClick(View v) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Confirm");
-		builder.setMessage("This operation will overwrite your save by this backup");
 		final View passV = v;
-		builder.setPositiveButton("Overwrite", new OnClickListener() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("This operation will overwrite your save by this backup");
+		String [] saveSlots = new String [] {"Save 1", "Save 2", "Save 3"};
+		builder.setItems(saveSlots, new OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				doRestore(passV);
+				doRestore(passV, which);
 			}
 		});
 		builder.setNegativeButton("Cancel", null);
 		builder.create().show();
 	}
 
-	public long getDate(File folder) {
-		long max = 0;
-		for (int i = 1; i < 4; i++) {
-			File savFile = new File(folder, "/files/Vault" + i + ".sav");
-			if (savFile.exists()) {
-				long mod = savFile.lastModified();
-				if (mod > max)
-					max = mod;
-			}
+	public long getFileDate(File savFile) {
+		if (savFile.exists()) {
+			return savFile.lastModified();
 		}
-		if (max == 0)
-			Log.e(TAG, "Can't found " + folder + "/files/Vault?.sav");
-		return max;
+		return 0;
 	}
 	
 	public void onBackupClick(View v) {
 		if (mSavePath == null || !mSavePath.exists())
 			return;
+		File saveFile = new File(mSavePath, "/files/" + (String)v.getTag());
 		int index = mIndex.getAndIncrement();
-		long date = getDate(mSavePath);
+		long date = getFileDate(saveFile);
 		if (date == 0)
 			return;
 		Log.i(TAG, "Date is " + date);
 
-		File destination = newBB(index, date).getFile();
-		copyDirectory(mSavePath, destination);
-	}
-
-	private void deleteTree(File f) {
-		if (!f.exists())
-			return;
-		if (f.isDirectory()) {
-			File [] list = f.listFiles();
-			for (File c : list) {
-				deleteTree(c);
-			}
-		}
-		f.delete();
+		BackupedButton bb = newBB(index, date);
+		copyFile(saveFile, bb.getFile());
 	}
 
 	private void doDelete(View v) {
@@ -292,7 +307,7 @@ public class ShelterBackupActivity extends Activity {
 			return;
 		int index = bb.getIndex();
 		mButtons.remove(bb);
-		deleteTree(bb.getFile());
+		deleteTree(bb.getFile().getParentFile());
 		Log.i(TAG, "BB index:" + index);
 
 		getLatestIndex();
