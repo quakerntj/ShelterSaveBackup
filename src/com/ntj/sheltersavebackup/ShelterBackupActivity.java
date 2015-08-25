@@ -248,7 +248,6 @@ public class ShelterBackupActivity extends Activity {
 		}
 		if (bb == null)
 			return;
-		int index = bb.getIndex();
 
 		File save = new File(mSavePath, "files/Vault" + (which + 1) + ".sav");
 		copyFile(bb.getFile(), save);
@@ -303,7 +302,6 @@ public class ShelterBackupActivity extends Activity {
 		}
 		if (bb == null)
 			return;
-		int index = bb.getIndex();
 		mButtons.remove(bb);
 		deleteTree(bb.getFile().getParentFile());
 
