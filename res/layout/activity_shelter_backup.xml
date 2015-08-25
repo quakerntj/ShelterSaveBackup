@@ -1,0 +1,68 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="${relativePackage}.${activityClass}" >
+
+	<TextView
+	    android:id="@+id/textview1"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+	    android:layout_alignParentTop="true"
+	    android:text="Click one of saves below to backup it" />
+
+    <Button
+        android:id="@+id/btnSave1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/textview1"
+        android:onClick="onBackupClick"
+        android:tag="1"
+        android:text="Save 1" />
+
+    <Button
+	    android:id="@+id/btnSave2"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+        android:layout_below="@id/btnSave1"
+	    android:onClick="onBackupClick"
+        android:tag="2"
+	    android:text="Save 2" />
+
+    <Button
+	    android:id="@+id/btnSave3"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+        android:layout_below="@id/btnSave2"
+	    android:onClick="onBackupClick"
+        android:tag="3"
+	    android:text="Save 3" />
+
+   	<TextView
+	    android:id="@+id/textview2"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+        android:layout_below="@id/btnSave3"
+	    android:text="Click one of backups below to restore it" />
+    
+	<ScrollView
+	    android:id="@+id/scrollView1"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/textview2"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent" >
+  		<LinearLayout
+	        android:id="@+id/linear"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:orientation="vertical" >
+	    </LinearLayout>
+	</ScrollView>
+
+
+</RelativeLayout>
