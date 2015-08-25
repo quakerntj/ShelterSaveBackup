@@ -27,6 +27,7 @@ public class ShelterBackupActivity extends Activity {
 	private static final String TAG = "ShelterBK";
 	private static final String SAVE_PATH = "Android/data/com.bethsoft.falloutshelter";
 	private static final String BACKUP_PATH = "Android/data/com.ntj.sheltersavebackup";
+	private boolean DEBUG = false;
 
 	private File mSavePath = null;
 	private AtomicInteger mIndex = null;
@@ -103,7 +104,7 @@ public class ShelterBackupActivity extends Activity {
 			}
 		}
 		mIndex = new AtomicInteger(max + 1);
-		Log.d(TAG, "Current index is " + mIndex.get());
+		if (DEBUG) Log.d(TAG, "Current index is " + mIndex.get());
 	}
 
 	private BackupedButton newBB(int index, long date) {
@@ -145,12 +146,12 @@ public class ShelterBackupActivity extends Activity {
 	}
 	
 	private void copyDirectory(File source, File destination) {
-		Log.d(TAG, "Copy directory from " + source + " to " + destination);
+		if (DEBUG) Log.d(TAG, "Copy directory from " + source + " to " + destination);
 
 		try {
         	FileUtils.copyDirectory(source, destination, true);
         } catch (IOException e) {
-        	Log.d(TAG, "fail on copy");
+        	Log.e(TAG, "fail on copy");
             e.printStackTrace();
         }
 	}
@@ -168,7 +169,7 @@ public class ShelterBackupActivity extends Activity {
 	}
 
 	private void copyFile(File source, File destination) {
-		Log.d(TAG, "Copy file from " + source + " to " + destination);
+		if (DEBUG) Log.d(TAG, "Copy file from " + source + " to " + destination);
 		if (destination.isDirectory())
 			return;
 
@@ -177,9 +178,9 @@ public class ShelterBackupActivity extends Activity {
 			dir.mkdirs();
 		try {
         	FileUtils.copyFile(source, destination, true);
-        	Log.d(TAG, "copied");
+        	if (DEBUG) Log.d(TAG, "copied");
         } catch (IOException e) {
-        	Log.d(TAG, "fail on copy");
+        	Log.e(TAG, "fail on copy");
             e.printStackTrace();
         }
 	}
@@ -228,7 +229,7 @@ public class ShelterBackupActivity extends Activity {
 	}
 
 	private void doRestore(View v, int which) {
-		Log.d(TAG, "doRestore");
+		if (DEBUG) Log.d(TAG, "doRestore");
 		// Always do backup.
 		File backup = new File(mSavePath.getAbsolutePath() + ".backup");
 		if (backup.exists())
@@ -248,9 +249,7 @@ public class ShelterBackupActivity extends Activity {
 		if (bb == null)
 			return;
 		int index = bb.getIndex();
-		Log.i(TAG, "BB index:" + index);
 
-		Log.d(TAG, "which " + which);
 		File save = new File(mSavePath, "files/Vault" + (which + 1) + ".sav");
 		copyFile(bb.getFile(), save);
 		updateSaveButtons();
@@ -286,7 +285,6 @@ public class ShelterBackupActivity extends Activity {
 		long date = getFileDate(saveFile);
 		if (date == 0)
 			return;
-		Log.i(TAG, "Date is " + date);
 
 		BackupedButton bb = newBB(index, date);
 		copyFile(saveFile, bb.getFile());
@@ -308,7 +306,6 @@ public class ShelterBackupActivity extends Activity {
 		int index = bb.getIndex();
 		mButtons.remove(bb);
 		deleteTree(bb.getFile().getParentFile());
-		Log.i(TAG, "BB index:" + index);
 
 		getLatestIndex();
 		loadBackupButtons();
