@@ -1,15 +1,11 @@
 package com.ntj.sheltersavebackup;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.crypto.NoSuchPaddingException;
 
 import org.apache.commons.io.FileUtils;
 
@@ -18,9 +14,9 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.JsonReader;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -61,7 +57,7 @@ public class ShelterBackupActivity extends Activity {
 			TextView text = (TextView) mLayout.findViewById(R.id.text_index);
 			text.setText(String.format("BACKUP %03d", mIndex));
 		}
-		
+
 		public int getIndex() {
 			return mIndex;
 		}
@@ -347,30 +343,27 @@ public class ShelterBackupActivity extends Activity {
 		}
 		if (bb == null)
 			return;
-		Decrypter decrypter = null;
+		File jsonFile = bb.getJsonFile();
+		File saveFile = bb.getFile();
+
 		try {
-			decrypter = new Decrypter(Decrypter.hexStringToByteArray(Decrypter.HEX_KEY),
-					Decrypter.hexStringToByteArray(Decrypter.HEX_IV));
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			return;
-		} catch (NoSuchPaddingException e) {
-			e.printStackTrace();
-			return;
+			ShelterSaveParser parser = ShelterSaveParser.getInstance(saveFile, jsonFile);
+			Intent intent = new Intent(this, DwellerListActivity.class);
+			startActivityForResult(intent, 100);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode != 100)
 			return;
-		}
-		try {
-			File json = bb.getJsonFile();
-			String jsonString = decrypter.decrypt(bb.getFile(), json);
-			ShelterSaveParser parser = new ShelterSaveParser(jsonString);
-			ShelterSaveParser.Dwellers ds = parser.parse();
-			Log.d(TAG, ds.toString());
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		if (data == null)
+			return;
+		Bundle bundle = data.getExtras();
+		String filename = bundle.getString("filename");
+		File file = new File(filename);
+		if (!file.exists())
+			return;
 	}
 }

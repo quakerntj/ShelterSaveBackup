@@ -19,7 +19,7 @@
         android:layout_alignParentRight="true"
         android:layout_centerInParent="true"
         android:gravity="center_vertical|center_horizontal"
-        android:text="100"
+        android:text="10"
         android:textColor="@color/pipboy_forground"
         android:textSize="18dp"
         android:textStyle="bold" />

@@ -1,13 +1,25 @@
 package com.ntj.sheltersavebackup;
 
+import java.io.File;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
+import javax.crypto.NoSuchPaddingException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ShelterSaveParser {
+public class ShelterSaveParser extends JsonRoot {
+	static ShelterSaveParser sShelterSaveParser;
+	private Crypter mDecrypter;
+	private File mSaveFile;
+	private File mJsonFile;
+
 	public final static class Level1 {
 		public static final String TIME_MGR = "timeMgr";
 		public static final String LOCAL_NOTIFICATION_MGR = "localNotificationMgr";
@@ -30,7 +42,7 @@ public class ShelterSaveParser {
 		public static final String SWREV_EVENTS_MANAGER= "swrveEventsManager";
 	}
 
-	public final static class Dweller {
+	public final class Dweller extends JsonRoot {
 		public static final String SERIALIZED_ID = "serializeId";
 		public static final String NAME = "name";
 		public static final String LAST_NAME = "lastName";
@@ -39,93 +51,134 @@ public class ShelterSaveParser {
 		public static final String EXPERIENCE = "experience"; //object
 		public static final String RELATIONS = "relations"; //object
 		public static final String EQUIPMENT = "equipment"; //object
-		public final static class equipment {
-		/*
-		5.1.8.1 "storage" object
-		5.1.8.1.1 "resources" object
-		5.1.8.1.2 "bonus" object
-		5.1.8.2 "inventory" 
-		5.1.8.2.1 "items" []
-		*/
-		}
 		public static final String GENDER = "gender";
 		public static final String STATS = "stats"; //object
-		//"stats" array
 		public static final String PREGNANT = "pregnant"; //object
 		public static final String BABY_READY = "babyReady"; //object
+		public static final String EQUIPED_OUTFIT = "equipedOutfit"; //object
+		public static final String EQUIPED_WEAPON = "equipedWeapon"; //object
 
-		private int mSerializedId;
-		private String mName;
-		private String mLastName;
-		private int mGender;
-		private Experience mExperience;
-		private Special mSpecial;
+		public int mSerializedId;
+		public String mName;
+		public String mLastName;
+		public int mGender;
+		public Experience mExperience;
+		public Special mSpecial;
+		public Item mEquipedOutfit;
+		public Item mEquipedWeapon;
+		public Equipment mEquipment;
 		
-		class Experience {
+		class Experience extends JsonRoot {
+			int mExperienceValue;
+			int mCurrentLevel;
+
 			public Experience(JSONObject root) throws JSONException {
+				super(root);
 				mExperienceValue = root.getInt("experienceValue");
 				mCurrentLevel = root.getInt("currentLevel");
 			}
-			int mExperienceValue;
-			int mCurrentLevel;
+
+			@Override
+			void update() throws JSONException {
+			}
 		}
 
-		class Special {
-			int s;
-			int p;
-			int e;
-			int c;
-			int i;
-			int a;
-			int l;
-			int sm;
-			int pm;
-			int em;
-			int cm;
-			int im;
-			int am;
-			int lm;
+		class Special extends JsonRoot {
+			public final int [] special = new int [7];
+			public final int [] specialMod = new int [7];
 
 			Special (JSONArray root) throws JSONException {
+				super(root);
 				// special
 				JSONObject obj;
-				obj = root.getJSONObject(1);
-				s = obj.getInt("value");
-				sm = obj.getInt("mod");
-				obj = root.getJSONObject(2);
-				p = obj.getInt("value");
-				pm = obj.getInt("mod");
-				obj = root.getJSONObject(3);
-				e = obj.getInt("value");
-				em = obj.getInt("mod");
-				obj = root.getJSONObject(4);
-				c = obj.getInt("value");
-				cm = obj.getInt("mod");
-				obj = root.getJSONObject(5);
-				i = obj.getInt("value");
-				im = obj.getInt("mod");
-				obj = root.getJSONObject(6);
-				a = obj.getInt("value");
-				am = obj.getInt("mod");
-				obj = root.getJSONObject(7);
-				l = obj.getInt("value");
-				lm = obj.getInt("mod");
+				for (int i = 0; i < 7; i++) {
+					obj = root.getJSONObject(i+1);
+					special[i] = obj.getInt("value");
+					specialMod[i] = obj.getInt("mod");
+				}
 			}
 
 			@Override
 			public String toString() {
-				return String.format("special=%d%d%d%d%d%d%d(%d%d%d%d%d%d%d)",
-						s, p, e, c, i, a, l, sm, pm, em, cm, im, am, lm);
+				StringBuilder sb = new StringBuilder("special=");
+				for (int i = 0; i < 7; i++) {
+					sb.append(special[i]);
+				}
+				sb.append("(");
+				for (int i = 0; i < 7; i++) {
+					sb.append(specialMod[i]);
+				}
+				sb.append(")");
+				return sb.toString();
+			}
+
+			@Override
+			void update() throws JSONException {
+				JSONObject obj;
+				for (int i = 0; i < 7; i++) {
+					obj = mRootArray.getJSONObject(i+1);
+					obj.put("value", special[i]);
+				}
 			}
 		}
-		
+
+		public class Item extends JsonRoot {
+			public String mId;
+			public String mType;
+
+			Item(JSONObject root) throws JSONException {
+				super(root);
+				mId = mRoot.getString("id");
+				mType = mRoot.getString("type");
+			}
+
+			@Override
+			void update() throws JSONException {
+				mRoot.put("id", mId);
+				mRoot.put("type", mType);
+			}
+		}
+
+		public class Equipment extends JsonRoot {
+			private static final String INVENTORY = "inventory";
+			private static final String ITEMS = "items";
+			private List<Item> mItems = new LinkedList<Item>();
+			private JSONArray mItemsRoot;
+
+			Equipment(JSONObject root) throws JSONException {
+				super(root);
+				JSONObject inventory = mRoot.getJSONObject(INVENTORY);
+				mItemsRoot = inventory.getJSONArray(ITEMS);
+				final int N = mItemsRoot.length();
+				for (int i = 0; i < N; i++) {
+					Item item = new Item(mItemsRoot.getJSONObject(i));
+					mItems.add(item);
+				}
+			}
+
+			public List<Item> getList() {
+				return mItems;
+			}
+
+			@Override
+			void update() throws JSONException {
+				for (Item i : mItems) {
+					i.update();
+				}
+			}
+		}
+
 		public Dweller(JSONObject root) throws JSONException {
+			super(root);
 			mName = root.getString(NAME);
 			mLastName = root.getString(LAST_NAME);
 			mSerializedId = root.getInt(SERIALIZED_ID);
 			mGender = root.getInt(GENDER);
 			mExperience = new Experience(root.getJSONObject(EXPERIENCE));
 			mSpecial = new Special(root.getJSONObject(STATS).getJSONArray(STATS));
+			mEquipedOutfit = new Item(root.getJSONObject(EQUIPED_OUTFIT));
+			mEquipedWeapon = new Item(root.getJSONObject(EQUIPED_WEAPON));
+			mEquipment = new Equipment(root.getJSONObject(EQUIPMENT));
 		}
 
 		@Override
@@ -137,19 +190,47 @@ public class ShelterSaveParser {
 			sb.append(mSpecial.toString());
 			return sb.toString();
 		}
+
+		@Override
+		void update() throws JSONException {
+			mSpecial.update();
+			mEquipedOutfit.update();
+			mEquipedWeapon.update();
+			mEquipment.update();
+		}
 	}
 
-	final JSONObject mRoot;
+	private final JSONObject mSaveRoot;
+	public Dwellers mDwellers;
 
-	public ShelterSaveParser(String jsonString) throws JSONException {
-		mRoot = new JSONObject(jsonString);
+	public static ShelterSaveParser getInstance(File saveFile, File jsonFile) throws JSONException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
+		Crypter decrypter = null;
+		decrypter = new Crypter(Crypter.hexStringToByteArray(Crypter.HEX_KEY),
+				Crypter.hexStringToByteArray(Crypter.HEX_IV));
+		String jsonString = decrypter.decrypt(saveFile, jsonFile);
+		sShelterSaveParser = new ShelterSaveParser(jsonString);
+		sShelterSaveParser.mSaveFile = saveFile;
+		sShelterSaveParser.mJsonFile = jsonFile;
+		sShelterSaveParser.mDecrypter = decrypter;
+		return sShelterSaveParser;
 	}
 
-	static class Dwellers {
+	public static ShelterSaveParser getInstance() {
+		return sShelterSaveParser;
+	}
+
+	private ShelterSaveParser(String jsonString) throws JSONException {
+		super(new JSONObject(jsonString));
+		mSaveRoot = mRoot;
+		parse();
+	}
+
+	class Dwellers extends JsonRoot {
 		public static final String DWELLERS = "dwellers";
 		private List<Dweller> mList;
 
 		public Dwellers(JSONObject dwellersRoot) throws JSONException {
+			super(dwellersRoot);
 			if (dwellersRoot.has(DWELLERS)) {
 				JSONArray dwellersArray = dwellersRoot.getJSONArray(Dwellers.DWELLERS);
 				final int N = dwellersArray.length();
@@ -163,6 +244,10 @@ public class ShelterSaveParser {
 			}
 		}
 
+		public List<Dweller> getList() {
+			return mList;
+		}
+
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
@@ -171,13 +256,34 @@ public class ShelterSaveParser {
 			}
 			return sb.toString();
 		}
+
+		@Override
+		void update() throws JSONException {
+		}
 	}
 
-	public Dwellers parse() throws JSONException {
-		if (mRoot.has(Level1.DWELLERS)) {
-			JSONObject dwellersRoot = mRoot.getJSONObject(Level1.DWELLERS);
-			return new Dwellers(dwellersRoot);
+	public Dwellers getDwellers() {
+		return mDwellers;
+	}
+
+	public void parse() throws JSONException {
+		if (mSaveRoot.has(Level1.DWELLERS)) {
+			JSONObject dwellersRoot = mSaveRoot.getJSONObject(Level1.DWELLERS);
+			mDwellers = new Dwellers(dwellersRoot);
 		}
-		return null;
+	}
+
+	@Override
+	void update() throws JSONException {
+		String big = mSaveRoot.toString();
+		try {
+			mDecrypter.encrypt(big, mJsonFile, mSaveFile);
+		} catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
+			e.printStackTrace();
+		}
+	}
+
+	void close() {
+		sShelterSaveParser = null;
 	}
 }

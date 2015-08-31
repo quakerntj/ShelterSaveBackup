@@ -5,10 +5,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -17,7 +21,7 @@ import android.util.Base64;
 import android.util.Base64InputStream;
 import android.util.Base64OutputStream;
 
-public class Decrypter {
+public class Crypter {
     Cipher dcipher;
     public static final String CMD_ENC = "enc";
     public static final String CMD_DEC = "dec";
@@ -49,14 +53,14 @@ public class Decrypter {
         return data;
     }
 
-    public Decrypter(byte [] keyBytes, byte [] ivBytes) throws Exception {
+    public Crypter(byte [] keyBytes, byte [] ivBytes) throws NoSuchAlgorithmException, NoSuchPaddingException  {
         mKey = new SecretKeySpec(keyBytes, "AES");
         mIV = ivBytes;
 
         dcipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
     }
 
-    public String decrypt(File in, File out) throws Exception {
+    public String decrypt(File in, File out) throws InvalidKeyException, InvalidAlgorithmParameterException  {
         InputStream cis = null;
         OutputStream os = null;
         dcipher.init(Cipher.DECRYPT_MODE, mKey, new IvParameterSpec(mIV));
@@ -90,7 +94,7 @@ public class Decrypter {
         return sb.toString();
     }
 
-    public void encrypt(File in, File out) throws Exception {
+    public void encrypt(File in, File out) throws InvalidKeyException, InvalidAlgorithmParameterException {
         InputStream is = null;
         OutputStream cos = null;
         dcipher.init(Cipher.ENCRYPT_MODE, mKey, new IvParameterSpec(mIV));
@@ -120,13 +124,40 @@ public class Decrypter {
         }
     }
 
+    public void encrypt(String strIn, File jsonOut, File out) throws InvalidKeyException, InvalidAlgorithmParameterException {
+    	OutputStream os = null;
+        OutputStream cos = null;
+        dcipher.init(Cipher.ENCRYPT_MODE, mKey, new IvParameterSpec(mIV));
+
+        try {
+            os = new FileOutputStream(jsonOut);
+            cos = new CipherOutputStream(new Base64OutputStream(new FileOutputStream(out), Base64.DEFAULT), dcipher);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        try {
+        	byte [] bytes = strIn.getBytes("UTF-8");
+        	os.write(bytes, 0, bytes.length);
+            cos.write(bytes, 0, bytes.length);
+
+            os.close();
+            cos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+    }
+
+/*
     public static void usage() {
         System.out.println("Decrypter <[enc|dec]> <SourceFile> <DestinationFile>");
     }
 
     public static void main(String args[]) throws Exception {
         if (args.length != 0) {
-            Decrypter decrypter = new Decrypter(new byte [] {}, new byte [] {});
+            Crypter decrypter = new Crypter(new byte [] {}, new byte [] {});
             if (CMD_ENC.equals(args[0])) {
                 if (args.length != 3) {
                     usage();
@@ -170,4 +201,5 @@ public class Decrypter {
             }
         }
     }
+*/
 }

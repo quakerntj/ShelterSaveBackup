@@ -25,12 +25,17 @@
             </intent-filter>
         </activity>
        	<activity
-            android:name=".SpecialEditorActivity"
+            android:name=".DwellerEditorActivity"
             android:label="special" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+               	<activity
+            android:name=".DwellerListActivity"
+            android:label="Dwellers" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
     </application>
