@@ -23,15 +23,6 @@
         android:onClick="onDeleteClick"
         android:text="X" />
 
-    <Button
-        android:id="@+id/btn_restore"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/btn_delete"
-        android:onClick="onRestoreClick"
-        android:text="Restore" />
-
     <TextView
         android:id="@+id/text_backup_date"
         android:layout_width="wrap_content"
@@ -41,6 +32,25 @@
         android:layout_alignRight="@+id/text_index"
         android:layout_below="@+id/text_index"
         android:text="2015 / 08 / 24"
-        android:textSize="18dp" />
+        android:textSize="16dp" />
+
+    <Button
+        android:id="@+id/btn_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/btn_delete"
+        android:minWidth="32dp"
+        android:onClick="onEditClick"
+        android:text="E" />
+
+    <Button
+        android:id="@+id/btn_restore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/btn_edit"
+        android:onClick="onRestoreClick"
+        android:text="Restore" />
 
 </RelativeLayout>

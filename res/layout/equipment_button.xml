@@ -1,0 +1,35 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" >
+
+	<ImageView
+   	    android:layout_width="93dp"
+   		android:layout_height="93dp"
+   		android:layout_margin="3dp"
+   		android:background="@drawable/equipment_button"
+        android:textColor="@color/pipboy_background"
+		android:id="@+id/img_background"
+		android:layout_centerInParent="true"
+		android:contentDescription="" />
+ 
+    <ImageView
+        android:id="@+id/img_equipment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:src="@drawable/fist"
+        android:contentDescription="" />
+
+    <TextView
+        android:id="@+id/text_equipment_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@id/img_background"
+        android:layout_marginBottom="6dp"
+        android:text="Fist"
+        android:textColor="@color/pipboy_background"
+        android:textSize="12dp"/>
+
+</RelativeLayout>

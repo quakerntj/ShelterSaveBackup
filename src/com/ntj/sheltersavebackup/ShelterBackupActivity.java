@@ -1,11 +1,15 @@
 package com.ntj.sheltersavebackup;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.commons.io.FileUtils;
 
@@ -16,6 +20,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.JsonReader;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -64,6 +69,11 @@ public class ShelterBackupActivity extends Activity {
 		public File getFile() {
 			return new File(Environment.getExternalStorageDirectory(),
 	        		String.format("%s/%03d/Vault.sav", BACKUP_PATH, mIndex));
+		}
+
+		public File getJsonFile() {
+			return new File(Environment.getExternalStorageDirectory(),
+	        		String.format("%s/%03d/Vault.json", BACKUP_PATH, mIndex));
 		}
 	}
 
@@ -308,7 +318,7 @@ public class ShelterBackupActivity extends Activity {
 		getLatestIndex();
 		loadBackupButtons();
 	}
-	
+
 	public void onDeleteClick(View v) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("Confirm");
@@ -322,5 +332,45 @@ public class ShelterBackupActivity extends Activity {
 		});
 		builder.setNegativeButton("Cancel", null);
 		builder.create().show();
+	}
+
+	public void onEditClick(View v) {
+		RelativeLayout rl = (RelativeLayout) v.getParent();
+		if (rl == null || mButtons == null)
+			return;
+		BackupedButton bb = null;
+		for (BackupedButton b : mButtons) {
+			if (rl == b.getLayout()) {
+				bb = b;
+				break;
+			}
+		}
+		if (bb == null)
+			return;
+		Decrypter decrypter = null;
+		try {
+			decrypter = new Decrypter(Decrypter.hexStringToByteArray(Decrypter.HEX_KEY),
+					Decrypter.hexStringToByteArray(Decrypter.HEX_IV));
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			return;
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+			return;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+		try {
+			File json = bb.getJsonFile();
+			String jsonString = decrypter.decrypt(bb.getFile(), json);
+			ShelterSaveParser parser = new ShelterSaveParser(jsonString);
+			ShelterSaveParser.Dwellers ds = parser.parse();
+			Log.d(TAG, ds.toString());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

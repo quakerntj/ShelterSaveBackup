@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SpecialSingleView">
+        <attr name="specialImage" format="reference" />
+        <attr name="specialName" format="string" />
+    </declare-styleable>
+    <declare-styleable name="EquipmentButtonView">
+        <attr name="equipmentImage" format="reference" />
+        <attr name="equipmentName" format="string" />
+    </declare-styleable>
+</resources>

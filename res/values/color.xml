@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>  
+    <resources>  
+    <color name="pipboy_forground">#12FF15</color>
+    <color name="pipboy_background">#FF182821</color>
+    <color name="pipboy_object_background">#FF007701</color>
+    <color name="pipboy_object_stoke">#FF055F06</color>
+</resources>  

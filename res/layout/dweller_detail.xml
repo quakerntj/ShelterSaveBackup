@@ -1,0 +1,134 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res/com.ntj.sheltersavebackup"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/pipboy_background">
+	<RelativeLayout
+	    android:id="@+id/special_detail_root"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:background="@drawable/border" >
+
+	    <TextView
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:gravity="center_horizontal"
+	        android:text="Quaker NTj"
+	        android:textAllCaps="true"
+	        android:textColor="@color/pipboy_forground"
+	        android:textSize="16dp"
+	        android:textStyle="bold|italic" />
+
+   	    <LinearLayout
+	        android:id="@+id/linear_list"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:padding="20dp"
+	        android:orientation="vertical" >
+	        <com.ntj.sheltersavebackup.SpecialSingleView 
+	            android:id="@+id/special_s"
+	            android:layout_width="match_parent"
+	        	android:layout_height="wrap_content"
+	        	custom:specialImage="@drawable/s"
+	        	custom:specialName="STRENGTH" />
+	        <com.ntj.sheltersavebackup.SpecialSingleView 
+	            android:id="@+id/special_p"
+	            android:layout_width="match_parent"
+	        	android:layout_height="wrap_content"
+	        	custom:specialImage="@drawable/p"
+	        	custom:specialName="PERCEPTION" />
+	        <com.ntj.sheltersavebackup.SpecialSingleView 
+	            android:id="@+id/special_e"
+	            android:layout_width="match_parent"
+	        	android:layout_height="wrap_content"
+	        	custom:specialImage="@drawable/e"
+	        	custom:specialName="ENDURANCE" />
+			<com.ntj.sheltersavebackup.SpecialSingleView 
+	            android:id="@+id/special_c"
+	            android:layout_width="match_parent"
+	        	android:layout_height="wrap_content"
+	        	custom:specialImage="@drawable/c"
+	        	custom:specialName="CHARISMA" />
+			<com.ntj.sheltersavebackup.SpecialSingleView 
+	            android:id="@+id/special_i"
+	            android:layout_width="match_parent"
+	        	android:layout_height="wrap_content"
+	        	custom:specialImage="@drawable/i"
+	        	custom:specialName="INTELLIGENCE" />
+			<com.ntj.sheltersavebackup.SpecialSingleView 
+	            android:id="@+id/special_a"
+	            android:layout_width="match_parent"
+	        	android:layout_height="wrap_content"
+	        	custom:specialImage="@drawable/a"
+	        	custom:specialName="AGILITY" />
+			<com.ntj.sheltersavebackup.SpecialSingleView 
+	            android:id="@+id/special_l"
+	            android:layout_width="match_parent"
+	        	android:layout_height="wrap_content"
+	        	custom:specialImage="@drawable/l"
+	        	custom:specialName="LUCK" />
+		</LinearLayout>
+		<LinearLayout
+		    android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_centerHorizontal="true"
+	        android:layout_below="@id/linear_list"
+	        android:orientation="horizontal" >
+	
+			<Button
+			    android:id="@+id/btn_cancel"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_marginRight="20dp"
+			    android:background="@drawable/border_invert"
+			    android:text="Cancel"
+			    android:textColor="@color/pipboy_background"
+			    android:textSize="14dp" />
+	
+			<Button
+			    android:id="@+id/btn_ok"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_marginLeft="20dp"
+			    android:background="@drawable/border_invert"
+			    android:text="Save"
+			    android:textColor="@color/pipboy_background"
+			    android:textSize="14dp" />
+	
+		</LinearLayout>
+	</RelativeLayout>
+	<HorizontalScrollView
+	    android:id="@+id/btn_test"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:background="@drawable/fill_forground"
+	    android:layout_alignParentBottom="true"
+	    android:layout_alignParentLeft="true"
+	    android:layout_alignParentRight="true" >
+		<LinearLayout
+    	    android:layout_width="match_parent"
+    		android:layout_height="wrap_content"
+    		android:orientation="horizontal" >
+		    <com.ntj.sheltersavebackup.EquipmentButtonView
+           		android:id="@+id/equiped_outfit"
+		        android:layout_width="wrap_content"
+           		android:layout_height="wrap_content"
+           		custom:equipmentName="Vault Suit"
+           		custom:equipmentImage="@drawable/fist" />
+		    <com.ntj.sheltersavebackup.EquipmentButtonView
+           		android:id="@+id/equiped_weapon"
+		        android:layout_width="wrap_content"
+           		android:layout_height="wrap_content"
+           		custom:equipmentName="Fist"
+           		custom:equipmentImage="@drawable/fist" />
+		    <View
+		        android:id="@+id/equipment_seperator"
+		        android:layout_height="match_parent"
+		        android:layout_width="2dp"
+		        android:background="@color/pipboy_object_stoke"
+		        />
+	    </LinearLayout>
+	</HorizontalScrollView>
+</RelativeLayout>
