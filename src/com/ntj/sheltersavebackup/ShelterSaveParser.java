@@ -42,6 +42,67 @@ public class ShelterSaveParser extends JsonRoot {
 		public static final String SWREV_EVENTS_MANAGER= "swrveEventsManager";
 	}
 
+	public class Item extends JsonRoot {
+		public String mId;
+		public String mType;
+
+		Item(JSONObject root) throws JSONException {
+			super(root);
+			mId = mRoot.getString("id");
+			mType = mRoot.getString("type");
+		}
+
+		@Override
+		void update() throws JSONException {
+			mRoot.put("id", mId);
+			mRoot.put("type", mType);
+		}
+	}
+
+	public class Equipment extends JsonRoot {
+		private static final String INVENTORY = "inventory";
+		private static final String ITEMS = "items";
+		private List<Item> mItems = new LinkedList<Item>();
+		private JSONArray mItemsRoot;
+
+		Equipment(JSONObject root) throws JSONException {
+			super(root);
+			JSONObject inventory = mRoot.getJSONObject(INVENTORY);
+			mItemsRoot = inventory.getJSONArray(ITEMS);
+			final int N = mItemsRoot.length();
+			for (int i = 0; i < N; i++) {
+				Item item = new Item(mItemsRoot.getJSONObject(i));
+				mItems.add(item);
+			}
+		}
+
+		public List<Item> getList() {
+			return mItems;
+		}
+
+		@Override
+		void update() throws JSONException {
+			for (Item i : mItems) {
+				i.update();
+			}
+		}
+	}
+
+	public Vault mVault;
+	
+	class Vault extends JsonRoot {
+		Equipment mInventory;
+		public Vault(JSONObject root) throws JSONException {
+			super(root);
+			mInventory = new Equipment(root); 
+		}
+
+		@Override
+		void update() throws JSONException {
+			mInventory.update();
+		}
+	}
+
 	public final class Dweller extends JsonRoot {
 		public static final String SERIALIZED_ID = "serializeId";
 		public static final String NAME = "name";
@@ -118,52 +179,6 @@ public class ShelterSaveParser extends JsonRoot {
 				for (int i = 0; i < 7; i++) {
 					obj = mRootArray.getJSONObject(i+1);
 					obj.put("value", special[i]);
-				}
-			}
-		}
-
-		public class Item extends JsonRoot {
-			public String mId;
-			public String mType;
-
-			Item(JSONObject root) throws JSONException {
-				super(root);
-				mId = mRoot.getString("id");
-				mType = mRoot.getString("type");
-			}
-
-			@Override
-			void update() throws JSONException {
-				mRoot.put("id", mId);
-				mRoot.put("type", mType);
-			}
-		}
-
-		public class Equipment extends JsonRoot {
-			private static final String INVENTORY = "inventory";
-			private static final String ITEMS = "items";
-			private List<Item> mItems = new LinkedList<Item>();
-			private JSONArray mItemsRoot;
-
-			Equipment(JSONObject root) throws JSONException {
-				super(root);
-				JSONObject inventory = mRoot.getJSONObject(INVENTORY);
-				mItemsRoot = inventory.getJSONArray(ITEMS);
-				final int N = mItemsRoot.length();
-				for (int i = 0; i < N; i++) {
-					Item item = new Item(mItemsRoot.getJSONObject(i));
-					mItems.add(item);
-				}
-			}
-
-			public List<Item> getList() {
-				return mItems;
-			}
-
-			@Override
-			void update() throws JSONException {
-				for (Item i : mItems) {
-					i.update();
 				}
 			}
 		}
@@ -266,15 +281,25 @@ public class ShelterSaveParser extends JsonRoot {
 		return mDwellers;
 	}
 
+	public Vault getVault() {
+		return mVault;
+	}
+
 	public void parse() throws JSONException {
 		if (mSaveRoot.has(Level1.DWELLERS)) {
 			JSONObject dwellersRoot = mSaveRoot.getJSONObject(Level1.DWELLERS);
 			mDwellers = new Dwellers(dwellersRoot);
 		}
+		if (mSaveRoot.has(Level1.VAULT)) {
+			JSONObject vaultRoot = mSaveRoot.getJSONObject(Level1.VAULT);
+			mVault = new Vault(vaultRoot);
+		}
 	}
 
 	@Override
 	void update() throws JSONException {
+		mDwellers.update();
+		mVault.update();
 		String big = mSaveRoot.toString();
 		try {
 			mDecrypter.encrypt(big, mJsonFile, mSaveFile);
@@ -285,5 +310,13 @@ public class ShelterSaveParser extends JsonRoot {
 
 	void close() {
 		sShelterSaveParser = null;
+	}
+
+	public File getSaveFile() {
+		return mSaveFile;
+	}
+
+	public File getJsonFile() {
+		return mJsonFile;
 	}
 }

@@ -17,15 +17,115 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.ntj.sheltersavebackup.ShelterSaveParser.Dweller.Item;
+import com.ntj.sheltersavebackup.ItemDatabase.DBItem;
+import com.ntj.sheltersavebackup.ShelterSaveParser.Item;
 
 public class DwellerEditorActivity extends Activity {
+	private final int ACT_RESULT_CHOOSE_OUTFIT = 0x01010;
+	private final int ACT_RESULT_CHOOSE_WEAPON = 0x01020;
+	private final int ACT_RESULT_CHOOSE_EQUIPMENT = 0x01030;
+
 	List<SpecialSingleView> mList = new ArrayList<SpecialSingleView>();
 	int [] mSpecial = new int [7];
 	int [] mOriginalSpecial = new int [7];
 	private ShelterSaveParser mParser;
 	private ShelterSaveParser.Dweller mDweller;
+	private ItemDatabase mDatabase;
 
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (data == null || resultCode != RESULT_OK)
+			return;
+		String type = "Weapon";
+		String id = "";
+		Bundle bundle = data.getExtras();
+		if (bundle != null) {
+			type = bundle.getString("type");
+			id = bundle.getString("id");
+		}
+		if (id.isEmpty())
+			return;
+		switch (requestCode) {
+		case ACT_RESULT_CHOOSE_EQUIPMENT:
+			break;
+		case ACT_RESULT_CHOOSE_WEAPON:
+			if (type.equals("Weapon")) {
+				mDweller.mEquipedWeapon.mId=id;
+				try {
+					mDweller.mEquipedWeapon.update();
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			break;
+		case ACT_RESULT_CHOOSE_OUTFIT:
+			if (type.equals("Outfit")) {
+				mDweller.mEquipedOutfit.mId=id;
+				try {
+					mDweller.mEquipedOutfit.update();
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	private OnClickListener mClicklistenerWeapon = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			Intent intent = new Intent(getApplicationContext(), ItemChooserActivity.class);
+			intent.putExtra("type", "Weapon");
+			startActivityForResult(intent, ACT_RESULT_CHOOSE_WEAPON);
+		}
+	};
+	
+	private OnClickListener mClicklistenerOutfit = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			Intent intent = new Intent(getApplicationContext(), ItemChooserActivity.class);
+			intent.putExtra("type", "Outfit");
+			startActivityForResult(intent, ACT_RESULT_CHOOSE_OUTFIT);
+		}
+	};
+	
+	private OnClickListener mClicklistenerEquipment = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			Intent intent = new Intent(getApplicationContext(), ItemChooserActivity.class);
+			intent.putExtra("type", "Equipment");
+			startActivityForResult(intent, ACT_RESULT_CHOOSE_EQUIPMENT);
+		}
+	};
+
+	/* As inventory if set forceType = -1 */
+	private void configView(EquipmentButtonView view, Item item, int forceType) {
+		if (forceType == 1) {  // Weapon
+			view.setOnClickListener(mClicklistenerWeapon);
+		} else if (forceType == 0) {  // Outfit
+			view.setOnClickListener(mClicklistenerOutfit);
+		} else if (forceType == -1) {  // Any Equipment
+			view.setOnClickListener(mClicklistenerEquipment);
+		}
+
+		boolean isWeapon = (forceType == 1);
+		if (forceType == -1) {
+			if (item.mType.equals(ItemDatabase.TYPE_WEAPON))
+				isWeapon = true;
+		}
+		DBItem dbitem = mDatabase.find(item);
+		if (dbitem != null) {
+			view.setWeapon(isWeapon);
+			view.setName(dbitem.showname);
+			view.setImage(ItemDatabase.getDrawable(dbitem));
+		} else {
+			view.setWeapon(isWeapon);
+			view.setName(item.mId);
+			view.setImage(isWeapon ? R.drawable.fist : R.drawable.vault_suit);
+		}
+	}
+	
 	private void updateDweller() {
 		TextView dwellerNameText = (TextView) findViewById(R.id.text_dweller_name);
 		dwellerNameText.setText(mDweller.mName + " " + mDweller.mLastName);
@@ -57,18 +157,19 @@ public class DwellerEditorActivity extends Activity {
 			mList.add(view);
 		}
 
+		DBItem dbitem;
 		EquipmentButtonView outfit = (EquipmentButtonView) findViewById(R.id.equiped_outfit);
-		outfit.setName(mDweller.mEquipedOutfit.mId);
+		configView(outfit, mDweller.mEquipedOutfit, 0);
 
 		EquipmentButtonView weapon = (EquipmentButtonView) findViewById(R.id.equiped_weapon);
-		weapon.setName(mDweller.mEquipedWeapon.mId);
+		configView(weapon, mDweller.mEquipedWeapon, 1);
 
 		List<Item> list = mDweller.mEquipment.getList();
 		if (list != null) {
 			LinearLayout viewList = (LinearLayout) findViewById(R.id.linear_equipment_list);
 			for (Item i : list) {
 				EquipmentButtonView btn = new EquipmentButtonView(this);
-				btn.setName(i.mId);
+				configView(btn, i, -1);
 				viewList.addView(btn);
 			}
 		}
@@ -113,6 +214,7 @@ public class DwellerEditorActivity extends Activity {
 			return;
 		}
 
+		mDatabase = ItemDatabase.getInstance();
 		updateDweller();
 	}
 
@@ -161,5 +263,6 @@ public class DwellerEditorActivity extends Activity {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
+		finish();
 	}
 }

@@ -26,8 +26,8 @@ import android.widget.TextView;
 
 public class ShelterBackupActivity extends Activity {
 	private static final String TAG = "ShelterBK";
-	private static final String SAVE_PATH = "Android/data/com.bethsoft.falloutshelter";
-	private static final String BACKUP_PATH = "Android/data/com.ntj.sheltersavebackup";
+	protected static final String SAVE_PATH = "Android/data/com.bethsoft.falloutshelter";
+	protected static final String BACKUP_PATH = "Android/data/com.ntj.sheltersavebackup";
 	private boolean DEBUG = false;
 
 	private File mSavePath = null;

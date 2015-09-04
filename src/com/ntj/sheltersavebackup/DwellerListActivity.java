@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 public class DwellerListActivity extends Activity {
 	private LinearLayout mLinearList;
 	private ShelterSaveParser mParser;
+	private final static boolean DATABASE = true;
 
 	protected void editDweller(int id) {
 		Intent intent = new Intent(this, DwellerEditorActivity.class);
@@ -24,10 +25,27 @@ public class DwellerListActivity extends Activity {
 		startActivity(intent);
 	}
 
+	protected void makeDatabase() {
+		Intent intent = new Intent(this, DatabaseMakerActivity.class);
+		startActivity(intent);
+	}
+
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_dwellers_list);
 		mLinearList = (LinearLayout) findViewById(R.id.linear_dwellers_list);
+
+		if (DATABASE) {
+			Button btn = new Button(this);
+			btn.setText("Make item database");
+			btn.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					makeDatabase();
+				}
+			});
+			mLinearList.addView(btn);
+		}
 
 		mParser = ShelterSaveParser.getInstance();
 		if (mParser == null) {

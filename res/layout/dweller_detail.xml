@@ -119,7 +119,7 @@
 		        android:layout_width="wrap_content"
            		android:layout_height="wrap_content"
            		custom:equipmentName="Vault Suit"
-           		custom:equipmentImage="@drawable/fist" />
+           		custom:equipmentImage="@drawable/vault_suit" />
 		    <com.ntj.sheltersavebackup.EquipmentButtonView
            		android:id="@+id/equiped_weapon"
 		        android:layout_width="wrap_content"

@@ -10,6 +10,8 @@ import android.widget.TextView;
 
 public class EquipmentButtonView extends RelativeLayout {
 	private String mName = "";
+	private String mId = "";
+	private int mType = 0;
 	public EquipmentButtonView(Context context) {
 		super(context);
 		inflate(getContext(), R.layout.equipment_button, this);
@@ -24,6 +26,7 @@ public class EquipmentButtonView extends RelativeLayout {
 		this(context, attrs);
 		initViews(context, attrs);
 	}
+
 	private void initViews(Context context, AttributeSet attrs) {
 		TypedArray a = context.getTheme().obtainStyledAttributes(attrs,
 				R.styleable.EquipmentButtonView, 0, 0);
@@ -50,9 +53,32 @@ public class EquipmentButtonView extends RelativeLayout {
 		return mName;
 	}
 
+	public int getType() {
+		return mType;
+	}
+
+	public void setWeapon(boolean isweapon) {
+		ImageView image = (ImageView) this.findViewById(R.id.img_equipment);
+		if (isweapon) {
+			mType = 1;
+			image.setRotation(45);
+		} else {
+			mType = 0;
+			image.setRotation(0);
+		}
+	}
+	
 	public void setName(String name) {
 		mName = name;
 		TextView number = (TextView) findViewById(R.id.text_equipment_name);
 		number.setText(name);
+	}
+	
+	public void setEquipmentId(String id) {
+		mId = id;
+	}
+
+	public String getEquipmentId() {
+		return mId;
 	}
 }
