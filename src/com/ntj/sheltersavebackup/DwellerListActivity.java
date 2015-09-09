@@ -19,9 +19,11 @@ import com.ntj.sheltersavebackup.ShelterSaveParser.Vault;
 public class DwellerListActivity extends Activity {
 	private LinearLayout mLinearList;
 	private ShelterSaveParser mParser;
-	private final static boolean DATABASE = true;
-	private final static boolean LUNCHBOXES = true;
-	private final static boolean CAPS = true;
+
+	// Bethesda and Google may sue me if I open this function.  It steal their money.
+	private final static boolean DATABASE = false;
+	private final static boolean LUNCHBOXES = false;
+	private final static boolean CAPS = false;
 
 	protected void editDweller(int id) {
 		Intent intent = new Intent(this, DwellerEditorActivity.class);
