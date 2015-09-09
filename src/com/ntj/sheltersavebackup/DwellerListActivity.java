@@ -14,10 +14,14 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import com.ntj.sheltersavebackup.ShelterSaveParser.Vault;
+
 public class DwellerListActivity extends Activity {
 	private LinearLayout mLinearList;
 	private ShelterSaveParser mParser;
 	private final static boolean DATABASE = true;
+	private final static boolean LUNCHBOXES = true;
+	private final static boolean CAPS = true;
 
 	protected void editDweller(int id) {
 		Intent intent = new Intent(this, DwellerEditorActivity.class);
@@ -32,6 +36,12 @@ public class DwellerListActivity extends Activity {
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		mParser = ShelterSaveParser.getInstance();
+		if (mParser == null) {
+			finish();
+			return;
+		}
+
 		setContentView(R.layout.activity_dwellers_list);
 		mLinearList = (LinearLayout) findViewById(R.id.linear_dwellers_list);
 
@@ -47,10 +57,55 @@ public class DwellerListActivity extends Activity {
 			mLinearList.addView(btn);
 		}
 
-		mParser = ShelterSaveParser.getInstance();
-		if (mParser == null) {
-			finish();
-			return;
+		if (LUNCHBOXES) {
+			Vault v = mParser.getVault();
+			Button btn = new Button(this);
+			int count = v.getLunchBoxesCount();
+			btn.setText("Add Lunch Box (" + count + ")");
+			btn.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					Button btn = (Button) v;
+					Vault vault = mParser.getVault();
+					vault.addLunchBox(Vault.LUNCH_BOX);
+					int count = vault.getLunchBoxesCount();
+					btn.setText("Add Lunch Box (" + count + ")");
+				}
+			});
+			mLinearList.addView(btn);
+
+			btn = new Button(this);
+			count = v.getMrHandyCount();
+			btn.setText("Add Mr. Handy (" + count + ")");
+			btn.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					Button btn = (Button) v;
+					Vault vault = mParser.getVault();
+					vault.addLunchBox(Vault.MR_HANDY);
+					int count = vault.getMrHandyCount();
+					btn.setText("Add Mr. Handy (" + count + ")");
+				}
+			});
+			mLinearList.addView(btn);
+		}
+		
+		if (CAPS) {
+			Vault v = mParser.getVault();
+			Button btn = new Button(this);
+			int caps = v.getNuka();
+			btn.setText("Add 1000 Caps (" + caps + ")");
+			btn.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					Button btn = (Button) v;
+					Vault vault = mParser.getVault();
+					double caps = vault.getNuka() + 1000.0;
+					vault.setNuka(caps);
+					btn.setText("Add 1000 Caps (" + (int)caps + ")");
+				}
+			});
+			mLinearList.addView(btn);
 		}
 
 		ShelterSaveParser.Dwellers dwellers = mParser.getDwellers();
@@ -82,7 +137,6 @@ public class DwellerListActivity extends Activity {
 						try {
 							mParser.update();
 						} catch (JSONException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						mParser.close();

@@ -90,16 +90,70 @@ public class ShelterSaveParser extends JsonRoot {
 
 	public Vault mVault;
 	
-	class Vault extends JsonRoot {
-		Equipment mInventory;
+	public class Vault extends JsonRoot {
+		public static final String LUNCH_BOXES_COUNT = "LunchBoxesCount";
+		public static final String LUNCH_BOXES_BY_TYPE = "LunchBoxesByType";
+		public static final int LUNCH_BOX = 0;
+		public static final int MR_HANDY = 1;
+		private double mNuka = 0;
+		public Equipment mInventory;
+		private List<Integer> mLunchBoxes;
+		private JSONArray mLunchBoxesRoot;
+		private JSONObject mResources;
+
 		public Vault(JSONObject root) throws JSONException {
 			super(root);
-			mInventory = new Equipment(root); 
+			mInventory = new Equipment(root);
+			mLunchBoxesRoot = mRoot.getJSONArray(LUNCH_BOXES_BY_TYPE);
+			final int N = mLunchBoxesRoot.length();
+			mLunchBoxes = new ArrayList<Integer>(N);
+			for (int i = 0; i < N; i++)
+				mLunchBoxes.add(Integer.valueOf(mLunchBoxesRoot.getInt(i)));
+
+			mResources = mRoot.getJSONObject("storage").getJSONObject("resources");
+			mNuka = mResources.getDouble("Nuka");
+		}
+
+		public int getNuka() {
+			return (int) mNuka;
+		}
+
+		public void setNuka(double nuka) {
+			mNuka = nuka;
+		}
+		
+		public void addLunchBox(int type) {
+			if (type != LUNCH_BOX && type != MR_HANDY)
+				return;
+			mLunchBoxes.add(Integer.valueOf(type));
+		}
+
+		public int getLunchBoxesCount() {
+			int count = 0;
+			final int N = mLunchBoxes.size();
+			for (int i = 0; i < N; i++)
+				if (mLunchBoxes.get(i) == LUNCH_BOX)
+					count++;
+			return count;
+		}
+
+		public int getMrHandyCount() {
+			int count = 0;
+			final int N = mLunchBoxes.size();
+			for (int i = 0; i < N; i++)
+				if (mLunchBoxes.get(i) == MR_HANDY)
+					count++;
+			return count;
 		}
 
 		@Override
 		void update() throws JSONException {
 			mInventory.update();
+			final int N = mLunchBoxes.size();
+			for (int i = 0; i < N; i++)
+				mLunchBoxesRoot.put(i, mLunchBoxes.get(i));
+			mRoot.put(LUNCH_BOXES_COUNT, mLunchBoxesRoot.length());
+			mResources.put("Nuka", mNuka);
 		}
 	}
 

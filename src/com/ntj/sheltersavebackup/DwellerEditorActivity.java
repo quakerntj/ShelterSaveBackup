@@ -27,7 +27,6 @@ public class DwellerEditorActivity extends Activity {
 
 	List<SpecialSingleView> mList = new ArrayList<SpecialSingleView>();
 	int [] mSpecial = new int [7];
-	int [] mOriginalSpecial = new int [7];
 	private ShelterSaveParser mParser;
 	private ShelterSaveParser.Dweller mDweller;
 	private ItemDatabase mDatabase;
@@ -177,7 +176,8 @@ public class DwellerEditorActivity extends Activity {
 
 		for (int i = 0; i < 7; i++) {
 			view = (SpecialSingleView) findViewById(idlist[i]);
-			view.setValue(mDweller.mSpecial.special[i]);
+			int special = mSpecial[i] = mDweller.mSpecial.special[i];
+			view.setValue(special);
 			view.setTag(i);
 			view.setClickable(true);
 			view.setOnClickListener(listener);
@@ -204,9 +204,6 @@ public class DwellerEditorActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		for (int i = 0; i < 7; i++)
-			mSpecial[i] = 1;
-
 		setContentView(R.layout.dweller_detail);
 
 		boolean verified = false;
