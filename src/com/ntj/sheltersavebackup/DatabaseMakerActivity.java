@@ -31,7 +31,7 @@ public class DatabaseMakerActivity extends Activity {
 		});
 		linear.addView(btn);
 
-		mDatabase = ItemDatabase.getInstance();
+		mDatabase = ItemDatabase.getInstance(this);
 	}
 
 	private void doScan() {

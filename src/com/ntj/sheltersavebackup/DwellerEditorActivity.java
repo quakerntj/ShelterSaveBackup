@@ -31,7 +31,9 @@ public class DwellerEditorActivity extends Activity {
 	private ShelterSaveParser mParser;
 	private ShelterSaveParser.Dweller mDweller;
 	private ItemDatabase mDatabase;
+	private EquipmentButtonView mEditingView = null;  
 
+	// TODO process gender special outfit
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (data == null || resultCode != RESULT_OK)
@@ -45,30 +47,52 @@ public class DwellerEditorActivity extends Activity {
 		}
 		if (id.isEmpty())
 			return;
+		Item newitem = null;
 		switch (requestCode) {
 		case ACT_RESULT_CHOOSE_EQUIPMENT:
+			if (mEditingView == null)
+				return;
+			String oldid = mEditingView.getEquipmentId();
+
+			// Find first item with same id and replace it.
+			List<Item> list = mDweller.mEquipment.getList();
+			if (list != null) {
+				for (Item i : list) {
+					if (!i.mId.equals(oldid))
+						continue;
+					i.mId = id;
+					i.mType = type;
+					newitem = i;
+					configView(mEditingView, i, -1);
+					break;
+				}
+			}
+			mEditingView = null;
 			break;
 		case ACT_RESULT_CHOOSE_WEAPON:
+			EquipmentButtonView weaponView = (EquipmentButtonView) findViewById(R.id.equiped_weapon);
 			if (type.equals("Weapon")) {
-				mDweller.mEquipedWeapon.mId=id;
-				try {
-					mDweller.mEquipedWeapon.update();
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				mDweller.mEquipedWeapon.mId = id;
+				configView(weaponView, mDweller.mEquipedWeapon, 1);
+				newitem = mDweller.mEquipedWeapon;
 			}
 			break;
 		case ACT_RESULT_CHOOSE_OUTFIT:
+			EquipmentButtonView outfitView = (EquipmentButtonView) findViewById(R.id.equiped_outfit);
 			if (type.equals("Outfit")) {
-				mDweller.mEquipedOutfit.mId=id;
-				try {
-					mDweller.mEquipedOutfit.update();
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				mDweller.mEquipedOutfit.mId = id;
+				configView(outfitView, mDweller.mEquipedOutfit, 0);
+				newitem = mDweller.mEquipedOutfit;
 			}
+			break;
+		}
+
+		if (newitem == null)
+			return;
+		try {
+			newitem.update();
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -93,6 +117,7 @@ public class DwellerEditorActivity extends Activity {
 	private OnClickListener mClicklistenerEquipment = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
+			mEditingView = (EquipmentButtonView) v;
 			Intent intent = new Intent(getApplicationContext(), ItemChooserActivity.class);
 			intent.putExtra("type", "Equipment");
 			startActivityForResult(intent, ACT_RESULT_CHOOSE_EQUIPMENT);
@@ -118,10 +143,12 @@ public class DwellerEditorActivity extends Activity {
 		if (dbitem != null) {
 			view.setWeapon(isWeapon);
 			view.setName(dbitem.showname);
+			view.setEquipmentId(dbitem.id);
 			view.setImage(ItemDatabase.getDrawable(dbitem));
 		} else {
 			view.setWeapon(isWeapon);
 			view.setName(item.mId);
+			view.setEquipmentId(item.mId);
 			view.setImage(isWeapon ? R.drawable.fist : R.drawable.vault_suit);
 		}
 	}
@@ -157,7 +184,6 @@ public class DwellerEditorActivity extends Activity {
 			mList.add(view);
 		}
 
-		DBItem dbitem;
 		EquipmentButtonView outfit = (EquipmentButtonView) findViewById(R.id.equiped_outfit);
 		configView(outfit, mDweller.mEquipedOutfit, 0);
 
@@ -214,7 +240,7 @@ public class DwellerEditorActivity extends Activity {
 			return;
 		}
 
-		mDatabase = ItemDatabase.getInstance();
+		mDatabase = ItemDatabase.getInstance(this);
 		updateDweller();
 	}
 

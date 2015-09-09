@@ -1,15 +1,20 @@
 package com.ntj.sheltersavebackup;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Field;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileSystemUtils;
+
+import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
 
@@ -51,9 +56,9 @@ public class ItemDatabase {
 	}
 
 	private static ItemDatabase sItemDatabase;
-	public static ItemDatabase getInstance() {
+	public static ItemDatabase getInstance(Context c) {
 		if (sItemDatabase == null) {
-			sItemDatabase = new ItemDatabase();
+			sItemDatabase = new ItemDatabase(c);
 		}
 		return sItemDatabase;
 	}
@@ -85,15 +90,30 @@ public class ItemDatabase {
 		return drawable;
 	}
 	
-	private ItemDatabase() {
+	private ItemDatabase(Context context) {
 		mGson = new Gson();
 		File extpath = Environment.getExternalStorageDirectory();
 		if (extpath == null)
 			return;
 		File folder = new File(extpath, ShelterBackupActivity.BACKUP_PATH);
-		
+
 		mFile = new File(folder, DB_FILE);
-		read();
+		try {
+			if (mFile.exists()) {
+				Reader reader = new FileReader(mFile);
+				read(reader);
+				reader.close();
+			} else {
+				InputStream is = context.getAssets().open(DB_FILE);
+				Reader reader = new InputStreamReader(is);
+				read(reader);
+				reader.close();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
+
 		if (mData == null) {
 			mData = new DBItems();
 			mData.mWeaponList = new ArrayList<DBItem>(120);
@@ -101,13 +121,9 @@ public class ItemDatabase {
 		}
 	}
 
-	private void read() {
-		if (!mFile.exists()) {
-			return;
-		}
+	private void read(Reader reader) {
 		Type type = new TypeToken<DBItems>() {}.getType();
 		try {
-			FileReader reader = new FileReader(mFile);
 			mData = mGson.fromJson(reader, type);
 			reader.close();
 		} catch (JsonIOException | JsonSyntaxException | IOException e) {

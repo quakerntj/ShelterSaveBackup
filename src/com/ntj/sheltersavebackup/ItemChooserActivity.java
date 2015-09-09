@@ -4,35 +4,41 @@ import java.util.HashMap;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.AbsListView.LayoutParams;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
 import com.ntj.sheltersavebackup.ItemDatabase.DBItem;
 
-public class ItemChooserActivity extends Activity implements OnClickListener {
+public class ItemChooserActivity extends Activity implements View.OnClickListener {
 	private ItemDatabase mDatabase;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_item_chooser);
-		LinearLayout linearCategory = (LinearLayout) findViewById(R.id.linear_catagory);
-
-		mDatabase = ItemDatabase.getInstance();
-
-		String type = "Weapon";
-		Intent intent = getIntent();
-		if (intent != null) {
-			Bundle extras = intent.getExtras();
-			if (extras != null) {
-				type = extras.getString("type");
+	private void showChooser() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Choose equipment type:");
+		String [] array = {ItemDatabase.TYPE_OUTFIT, ItemDatabase.TYPE_WEAPON};
+		builder.setItems(array, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				showItems(which == 0? ItemDatabase.TYPE_OUTFIT : ItemDatabase.TYPE_WEAPON);
 			}
-		}
+		});
+		builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				finish();
+			}
+		});
+		builder.create().show();
+	}
+	
+	private void showItems(String type) {
+		LinearLayout linearCategory = (LinearLayout) findViewById(R.id.linear_catagory);
 
 		if (type.equals("Weapon")) {
 			HashMap<String, LinearLayout> map = new HashMap<String, LinearLayout>();
@@ -85,6 +91,25 @@ public class ItemChooserActivity extends Activity implements OnClickListener {
 				view.setWeapon(false);
 				view.setName(i.showname);
 				linear.addView(view);
+			}
+		} else if (type.equals("Equipment")) {
+			showChooser();
+		}
+	}
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_item_chooser);
+		mDatabase = ItemDatabase.getInstance(this);
+
+		String type = "Weapon";
+		Intent intent = getIntent();
+		if (intent != null) {
+			Bundle extras = intent.getExtras();
+			if (extras != null) {
+				type = extras.getString("type");
+				showItems(type);
 			}
 		}
 	}
